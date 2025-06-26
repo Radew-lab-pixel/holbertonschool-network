@@ -2,4 +2,4 @@
 # Display all active IPv4 addresses on the machine
 ip -o -4 addr show | awk '{print $4}' | cut -d'/' -f1
 # Alternative version using hostname
-hostname -I | tr ' ' '\n' | grep -v '^$'
+# hostname -I | tr ' ' '\n' | grep -v '^$'
