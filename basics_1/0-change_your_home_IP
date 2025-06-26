@@ -16,6 +16,7 @@ grep -q "facebook.com" /etc/hosts && \
 echo "8.8.8.8 facebook.com www.facebook.com" >> /etc/hosts
 
 # Show results
-echo -e "\nResults:"
+# echo -e "\nResults:"
 echo "localhost: $(getent hosts localhost | awk '{print $1}')"
 echo "facebook.com: $(getent hosts facebook.com | awk '{print $1}')"
+echo "Host resolution updated: localhost -> 127.0.0.2, facebook.com -> 8.8.8.8"
