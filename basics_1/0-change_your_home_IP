@@ -1,47 +1,21 @@
 #!/usr/bin/env bash
 # Ensure script is run as root
 
-if [ "$(id -u)" -ne 0 ]; then
-  echo "This script must be run as root" >&2
-  exit 1
-fi
+# Check if running as root
+[ "$(id -u)" -ne 0 ] && echo "Run as root" && exit 1
 
-# Backup existing hosts file
-echo "Backing up /etc/hosts to /etc/hosts.bak"
+# Backup hosts file
 cp /etc/hosts /etc/hosts.bak
 
-# Update localhost resolution
-echo "Configuring localhost to resolve to 127.0.0.2"
-sed -i 's/^127\.0\.0\.1\s*localhost/127.0.0.2\tlocalhost/' /etc/hosts
+# Set localhost to 127.0.0.2
+sed -i 's/127.0.0.1.*localhost/127.0.0.2\tlocalhost/' /etc/hosts
 
-# Configure facebook.com resolution
-echo "Configuring facebook.com to resolve to 8.8.8.8"
+# Set facebook.com to 8.8.8.8
+grep -q "facebook.com" /etc/hosts && \
+  sed -i '/facebook.com/d' /etc/hosts
+echo "8.8.8.8 facebook.com www.facebook.com" >> /etc/hosts
 
-# Check if facebook.com entry already exists
-if grep -q "facebook.com" /etc/hosts; then
-  # Update existing entry
-  sed -i 's/^.*facebook\.com.*$/8.8.8.8\tfacebook.com www.facebook.com/' /etc/hosts
-else
-  # Add new entry
-  echo -e "8.8.8.8\tfacebook.com www.facebook.com" >> /etc/hosts
-fi
-
-# Configure systemd-resolved to prevent overwrites
-if systemctl is-active --quiet systemd-resolved; then
-  echo "Configuring systemd-resolved to preserve our changes"
-  mkdir -p /etc/systemd/resolved.conf.d
-  cat > /etc/systemd/resolved.conf.d/override.conf <<EOF
-[Resolve]
-DNSStubListener=no
-EOF
-  systemctl restart systemd-resolved
-fi
-
-# Verify changes
-echo ""
-echo "Verifying changes:"
-echo "localhost resolves to: $(getent hosts localhost | awk '{print $1}')"
-echo "facebook.com resolves to: $(getent hosts facebook.com | awk '{print $1}')"
-
-echo ""
-echo "Configuration complete!"
+# Show results
+echo -e "\nResults:"
+echo "localhost: $(getent hosts localhost | awk '{print $1}')"
+echo "facebook.com: $(getent hosts facebook.com | awk '{print $1}')"
